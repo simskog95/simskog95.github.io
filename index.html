@@ -1,9 +1,97 @@
-<!DOCTYPE html>
-<head>
-	<meta charset='utf-8' />
-	<title>Hello World!</title>
-</head>
-<body>
-	<h1>Hej på er!</h1>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SwamTech | Under Construction</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07111c;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel-border: rgba(148, 163, 184, 0.18);
+        --text: #f8fafc;
+        --muted: #b6c4d6;
+        --accent: #0284c7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 50% -20%, rgba(2, 132, 199, 0.24), transparent 34rem),
+          linear-gradient(145deg, #030712 0%, var(--bg) 55%, #0b1724 100%);
+      }
+
+      main {
+        width: min(100%, 680px);
+        padding: clamp(32px, 7vw, 64px);
+        text-align: center;
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(16px);
+      }
+
+      img {
+        width: min(100%, 360px);
+        height: auto;
+        padding: 18px 22px;
+        border-radius: 8px;
+        background: rgba(248, 250, 252, 0.96);
+      }
+
+      h1 {
+        margin: 34px 0 12px;
+        font-size: clamp(2rem, 7vw, 4.5rem);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 0 auto;
+        max-width: 34rem;
+        color: var(--muted);
+        font-size: clamp(1rem, 2.5vw, 1.18rem);
+        line-height: 1.65;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 28px;
+        color: #d7ecf8;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .status::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 24px rgba(2, 132, 199, 0.85);
+      }
+    </style>
+  </head>
+  <body>
+    <main aria-label="SwamTech placeholder page">
+      <img src="swamtech.svg" alt="SwamTech">
+      <h1>Under construction</h1>
+      <p>Our website is being built right now. Please check back soon.</p>
+      <div class="status">Coming soon</div>
+    </main>
+  </body>
 </html>
