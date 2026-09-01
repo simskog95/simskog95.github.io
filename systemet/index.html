@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systembolaget Prisfynd</title>
+    <!-- SheetJS for parsing XLSX files in the browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #005a3b;
+            --primary-light: #e6f2ee;
+            --secondary: #ffb81c;
+            --bg-color: #f4f6f8;
+            --text-color: #333;
+            --border-color: #ddd;
+            --card-bg: #fff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; }
+        
+        header { background-color: var(--primary); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px; }
+        header h1 { font-size: 1.5rem; }
+        
+        .container { display: flex; max-width: 1400px; margin: 20px auto; padding: 0 20px; gap: 20px; flex-wrap: wrap; align-items: flex-start;}
+        
+        .sidebar { flex: 1 1 280px; background-color: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 20px; }
+        .sidebar h2 { font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; }
+        .filter-group { margin-bottom: 15px; }
+        .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .filter-group input[type="text"], .filter-group input[type="number"], .filter-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; }
+        .filter-group.checkbox { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+        .filter-group.checkbox label { margin-bottom: 0; font-weight: normal; cursor: pointer; }
+        .filter-group.checkbox input { width: auto; transform: scale(1.2); cursor: pointer; }
+        
+        .main-content { flex: 3 1 700px; }
+        .stats-bar { background-color: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; position: relative;}
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .card-discount { position: absolute; top: 10px; right: 10px; background-color: #d32f2f; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2;}
+        
+        .card-content { padding: 20px 15px 15px 15px; flex-grow: 1; }
+        .card-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 2px; color: var(--primary); }
+        .card-subtitle { font-size: 0.9rem; color: #555; margin-bottom: 12px; min-height: 40px; }
+        .card-price { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+        .new-price { font-size: 1.5rem; font-weight: bold; color: #d32f2f; }
+        .old-price { text-decoration: line-through; color: #888; font-size: 0.95rem; }
+        
+        .card-details { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
+        .tag { background-color: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; }
+        
+        .card-action { padding: 15px; background-color: #fafafa; border-top: 1px solid var(--border-color); text-align: center; }
+        .card-action a { display: inline-block; text-decoration: none; background-color: var(--primary); color: white; padding: 10px 20px; border-radius: 4px; font-weight: bold; transition: background 0.2s; width: 100%; }
+        .card-action a:hover { background-color: #00452d; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; background-color: var(--card-bg); border-radius: 8px; color: #555; font-size: 1.1rem; grid-column: 1 / -1; }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🍾 Systembolaget Prisfynd</h1>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Filter & Sök</h2>
+            <div class="filter-group">
+                <label for="search">Sök (Namn, producent, land)</label>
+                <input type="text" id="search" placeholder="T.ex. Rioja, IPA, Glenfiddich..." oninput="applyFilters()">
+            </div>
+            
+            <div class="filter-group">
+                <label for="sortOrder">Sortering</label>
+                <select id="sortOrder" onchange="applyFilters()">
+                    <option value="discount_desc">Mest nedsatt (%)</option>
+                    <option value="discount_amt_desc">Störst prissänkning (kr)</option>
+                    <option value="price_asc">Lägst nytt pris</option>
+                    <option value="apk_desc">Högst APK (Alkohol per krona)</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="category1">Kategori</label>
+                <select id="category1" onchange="updateSubcategories(); applyFilters()">
+                    <option value="">Alla</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="category2">Underkategori</label>
+                <select id="category2" onchange="applyFilters()">
+                    <option value="">Alla</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="maxPrice">Maxpris (kr)</label>
+                <input type="number" id="maxPrice" placeholder="T.ex. 200" oninput="applyFilters()">
+            </div>
+
+            <div class="filter-group checkbox">
+                <input type="checkbox" id="showOutOfStock" onchange="applyFilters()">
+                <label for="showOutOfStock">Visa även slutsålda varor</label>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="stats-bar">
+                <span id="resultCount">Laddar in data...</span>
+                <div id="loader" class="loader"></div>
+            </div>
+            <div class="grid" id="productGrid">
+                <div class="empty-state">
+                    <h3>Väntar på data...</h3>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let allProducts = [];
+        let categoriesMap = {};
+        
+        // Hårdkodat filnamn för GitHub Pages
+        const excelFileName = "SB_nedsatta_priser_2026_09_01_over_2_procent_.xlsx";
+
+        // Kör funktionen när sidan laddats
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchExcelFile();
+        });
+
+        function fetchExcelFile() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('resultCount').textContent = "Hämtar filen från servern...";
+
+            fetch(excelFileName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Kunde inte hämta ${excelFileName} (HTTP ${response.status})`);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    document.getElementById('resultCount').textContent = "Bearbetar data...";
+                    try {
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Konvertera Excel-ark till JSON
+                        const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                        processExcelData(json);
+                    } catch (error) {
+                        console.error("Fel vid tolkning av Excel:", error);
+                        showError("Ett fel uppstod när filen skulle tolkas.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch-fel:", error);
+                    showError(`Kunde inte hitta eller ladda filen <b>${excelFileName}</b>. Se till att den ligger i samma mapp/repo som denna HTML-fil.`);
+                });
+        }
+
+        function showError(message) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('resultCount').textContent = "Något gick fel.";
+            document.getElementById('productGrid').innerHTML = `<div class="empty-state" style="color: #d32f2f;">${message}</div>`;
+        }
+
+        function processExcelData(data) {
+            if (!data || data.length === 0) {
+                showError("Excel-filen verkar vara tom.");
+                return;
+            }
+
+            allProducts = [];
+            categoriesMap = {};
+
+            data.forEach(row => {
+                const cat1 = row["Varugrupp, nivå 1"] ? String(row["Varugrupp, nivå 1"]).trim() : "";
+                const cat2 = row["Varugrupp, nivå 2"] ? String(row["Varugrupp, nivå 2"]).trim() : "";
+
+                if (cat1 && !categoriesMap[cat1]) {
+                    categoriesMap[cat1] = new Set();
+                }
+                if (cat1 && cat2) {
+                    categoriesMap[cat1].add(cat2);
+                }
+
+                allProducts.push({
+                    artnr: row["Artikelnummer"],
+                    discount_pct: parseFloat(row["Nedsatt % (fr igår)"]) || 0,
+                    newPrice: parseFloat(row["Nytt pris"]) || 0,
+                    oldPrice: parseFloat(row["Gammalt pris"]) || 0,
+                    slut: row["Slut"] ? String(row["Slut"]).trim() : "Nej",
+                    namn: row["Namn"] ? String(row["Namn"]).trim() : "Okänd",
+                    namn2: row["Namn 2"] ? String(row["Namn 2"]).trim() : "",
+                    url: row["Url"] ? String(row["Url"]).trim() : "#",
+                    apk: parseFloat(row["Apk"]) || 0,
+                    vol: row["Volym i ml"] ? String(row["Volym i ml"]).trim() : "",
+                    alk: row["Alkoholhalt i %"] ? String(row["Alkoholhalt i %"]).trim() : "",
+                    cat1: cat1,
+                    cat2: cat2,
+                    country: row["Land"] ? String(row["Land"]).trim() : "",
+                    prod: row["Producent"] ? String(row["Producent"]).trim() : ""
+                });
+            });
+
+            populateCategories();
+            document.getElementById('loader').style.display = 'none';
+            applyFilters();
+        }
+
+        function populateCategories() {
+            const cat1Select = document.getElementById('category1');
+            cat1Select.innerHTML = '<option value="">Alla</option>';
+            
+            Object.keys(categoriesMap).sort().forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                cat1Select.appendChild(opt);
+            });
+            updateSubcategories();
+        }
+
+        function updateSubcategories() {
+            const cat1 = document.getElementById('category1').value;
+            const cat2Select = document.getElementById('category2');
+            cat2Select.innerHTML = '<option value="">Alla</option>';
+
+            if (cat1 && categoriesMap[cat1]) {
+                Array.from(categoriesMap[cat1]).sort().forEach(cat => {
+                    let opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat;
+                    cat2Select.appendChild(opt);
+                });
+            }
+        }
+
+        function applyFilters() {
+            if (allProducts.length === 0) return;
+
+            const search = document.getElementById('search').value.toLowerCase();
+            const sortOrder = document.getElementById('sortOrder').value;
+            const cat1 = document.getElementById('category1').value;
+            const cat2 = document.getElementById('category2').value;
+            const maxPriceInput = document.getElementById('maxPrice').value;
+            const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
+            const showOutOfStock = document.getElementById('showOutOfStock').checked;
+
+            let filtered = allProducts.filter(p => {
+                if (!showOutOfStock && p.slut.toLowerCase().includes("ja")) return false;
+                if (p.newPrice > maxPrice) return false;
+                if (cat1 && p.cat1 !== cat1) return false;
+                if (cat2 && p.cat2 !== cat2) return false;
+                if (search) {
+                    const searchable = `${p.namn} ${p.namn2} ${p.prod} ${p.country}`.toLowerCase();
+                    if (!searchable.includes(search)) return false;
+                }
+                return true;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (sortOrder === 'discount_desc') return b.discount_pct - a.discount_pct;
+                if (sortOrder === 'price_asc') return a.newPrice - b.newPrice;
+                if (sortOrder === 'apk_desc') return b.apk - a.apk;
+                if (sortOrder === 'discount_amt_desc') return (b.oldPrice - b.newPrice) - (a.oldPrice - a.newPrice);
+                return 0;
+            });
+
+            renderGrid(filtered);
+        }
+
+        function renderGrid(products) {
+            const grid = document.getElementById('productGrid');
+            const countLabel = document.getElementById('resultCount');
+            grid.innerHTML = '';
+            countLabel.textContent = `Hittade ${products.length} produkter.`;
+
+            if (products.length === 0) {
+                grid.innerHTML = `<div class="empty-state">Inga produkter matchade dina filter. Prova att ändra sökningen!</div>`;
+                return;
+            }
+
+            // Limit rendering to 300 items to avoid lagging the browser
+            const renderLimit = Math.min(products.length, 300);
+            
+            for (let i = 0; i < renderLimit; i++) {
+                const p = products[i];
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                let isOutOfStock = p.slut.toLowerCase().includes("ja");
+                let outOfStockTag = isOutOfStock ? `<div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 1;">Slutsåld</div>` : "";
+                
+                let cardOpacity = isOutOfStock ? "opacity: 0.7;" : "";
+
+                card.innerHTML = `
+                    <div style="${cardOpacity} display: flex; flex-direction: column; height: 100%;">
+                        ${outOfStockTag}
+                        <div class="card-discount">-${p.discount_pct.toFixed(0)}%</div>
+                        <div class="card-content">
+                            <div class="card-title">${p.namn}</div>
+                            <div class="card-subtitle">${p.namn2} ${p.prod ? '| ' + p.prod : ''}</div>
+                            <div class="card-price">
+                                <span class="new-price">${p.newPrice.toFixed(0)} kr</span>
+                                <span class="old-price">${p.oldPrice.toFixed(0)} kr</span>
+                            </div>
+                            <div class="card-details">
+                                <span class="tag" title="Varugrupp">${p.cat1}${p.cat2 ? ' / '+p.cat2 : ''}</span>
+                                ${p.country ? `<span class="tag" title="Land">${p.country}</span>` : ''}
+                                ${p.alk ? `<span class="tag" title="Alkoholhalt">${p.alk}%</span>` : ''}
+                                ${p.vol ? `<span class="tag" title="Volym">${p.vol} ml</span>` : ''}
+                                <span class="tag" title="Alkohol per krona">APK: ${p.apk.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="card-action">
+                            <a href="${p.url}" target="_blank">Visa på Systembolaget ➔</a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+            if(products.length > renderLimit) {
+                 const msg = document.createElement('div');
+                 msg.className = 'empty-state';
+                 msg.style.padding = "20px";
+                 msg.innerHTML = `<em>Visar de första ${renderLimit} av ${products.length} träffar. Använd filter för att smalna av din sökning.</em>`;
+                 grid.appendChild(msg);
+            }
+        }
+    </script>
+</body>
+</html>
