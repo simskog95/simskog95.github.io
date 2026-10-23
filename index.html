@@ -1,9 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="sv">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SwamTech | Under Construction</title>
+    <title>SwamTech AB | Webbhotell och e-post för företag</title>
+    <meta
+      name="description"
+      content="Webbhotell och e-post på egen domän för företag. Enkel hemsida med e-post och egen domän för 2 500 kr/år."
+    >
+    <meta property="og:title" content="SwamTech AB | Webbhotell och e-post för företag">
+    <meta
+      property="og:description"
+      content="Webbhotell och e-post på egen domän för företag. Enkel hemsida med e-post och egen domän för 2 500 kr/år."
+    >
+    <meta property="og:type" content="website">
     <style>
       :root {
         color-scheme: dark;
@@ -13,85 +23,601 @@
         --text: #f8fafc;
         --muted: #b6c4d6;
         --accent: #0284c7;
+        --accent-strong: #0369a1;
+        --accent-soft: #7dd3fc;
+        --radius: 12px;
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         min-height: 100vh;
         margin: 0;
-        display: grid;
-        place-items: center;
-        padding: 24px;
+        padding: 0 20px;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         color: var(--text);
         background:
           radial-gradient(circle at 50% -20%, rgba(2, 132, 199, 0.24), transparent 34rem),
           linear-gradient(145deg, #030712 0%, var(--bg) 55%, #0b1724 100%);
+        background-attachment: fixed;
       }
 
-      main {
-        width: min(100%, 680px);
-        padding: clamp(32px, 7vw, 64px);
-        text-align: center;
-        border: 1px solid var(--panel-border);
+      a {
+        color: var(--accent-soft);
+      }
+
+      a:focus-visible,
+      button:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid var(--accent-soft);
+        outline-offset: 3px;
+        border-radius: 4px;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 20px;
+        top: -100px;
+        padding: 12px 18px;
         border-radius: 8px;
-        background: var(--panel);
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
-        backdrop-filter: blur(16px);
+        background: var(--text);
+        color: #0f172a;
+        font-weight: 700;
+        text-decoration: none;
+        z-index: 10;
       }
 
-      img {
-        width: min(100%, 360px);
-        height: auto;
-        padding: 18px 22px;
+      .skip-link:focus {
+        top: 20px;
+      }
+
+      .site-header,
+      main,
+      .site-footer {
+        width: min(100%, 1120px);
+        margin-inline: auto;
+      }
+
+      .site-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 24px 0;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
         border-radius: 8px;
         background: rgba(248, 250, 252, 0.96);
+        line-height: 0;
       }
 
-      h1 {
-        margin: 34px 0 12px;
-        font-size: clamp(2rem, 7vw, 4.5rem);
-        line-height: 1;
-        letter-spacing: 0;
+      .brand img {
+        width: 170px;
+        height: auto;
       }
 
-      p {
-        margin: 0 auto;
-        max-width: 34rem;
+      .site-nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 8px;
+        color: var(--muted);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .site-nav a:hover {
+        color: var(--text);
+      }
+
+      .hero {
+        padding: 48px 0 56px;
+        max-width: 760px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin: 0 0 20px;
+        padding: 6px 12px;
+        border: 1px solid rgba(125, 211, 252, 0.35);
+        border-radius: 999px;
+        background: rgba(2, 132, 199, 0.14);
+        color: var(--accent-soft);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .hero h1 {
+        margin: 0 0 20px;
+        font-size: clamp(2.25rem, 6vw, 4rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+      }
+
+      .hero h1 span {
+        color: var(--accent-soft);
+      }
+
+      .hero p {
+        margin: 0 0 32px;
+        max-width: 56ch;
         color: var(--muted);
         font-size: clamp(1rem, 2.5vw, 1.18rem);
         line-height: 1.65;
       }
 
-      .status {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 28px;
-        color: #d7ecf8;
-        font-size: 0.95rem;
-        font-weight: 600;
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
-      .status::before {
-        content: "";
-        width: 10px;
-        height: 10px;
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 24px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: var(--accent-strong);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background-color 150ms ease, border-color 150ms ease;
+      }
+
+      .button:hover {
+        background: #075985;
+      }
+
+      .button--secondary {
+        border-color: var(--panel-border);
+        background: transparent;
+        color: var(--text);
+      }
+
+      .button--secondary:hover {
+        border-color: var(--accent-soft);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding-bottom: 72px;
+      }
+
+      @media (min-width: 720px) {
+        .cards {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card:last-child {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (min-width: 1040px) {
+        .cards {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .card:last-child {
+          grid-column: auto;
+        }
+      }
+
+      .card {
+        display: flex;
+        flex-direction: column;
+        padding: 28px;
+        border: 1px solid var(--panel-border);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+      }
+
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+
+      .card p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .card h3 {
+        margin: 4px 0 8px;
+        font-size: 0.95rem;
+        color: var(--accent-soft);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .card ul {
+        margin: 0 0 20px;
+        padding-left: 20px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .card li + li {
+        margin-top: 4px;
+      }
+
+      .card--price {
+        border-color: rgba(2, 132, 199, 0.6);
+        background:
+          linear-gradient(180deg, rgba(2, 132, 199, 0.12), rgba(255, 255, 255, 0.04));
+      }
+
+      .badge {
+        align-self: flex-start;
+        margin-bottom: 14px;
+        padding: 4px 10px;
         border-radius: 999px;
-        background: var(--accent);
-        box-shadow: 0 0 24px rgba(2, 132, 199, 0.85);
+        background: rgba(125, 211, 252, 0.14);
+        color: var(--accent-soft);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .price {
+        margin: 8px 0 4px;
+        font-size: clamp(2.4rem, 6vw, 3.2rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .price span {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--muted);
+        letter-spacing: 0;
+      }
+
+      .price-note {
+        margin: 0 0 24px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .card .button {
+        margin-top: auto;
+      }
+
+      .faq {
+        padding: 8px 0 72px;
+      }
+
+      .faq h2 {
+        margin: 0 0 20px;
+        font-size: clamp(1.6rem, 4vw, 2rem);
+        letter-spacing: -0.02em;
+      }
+
+      .faq-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .faq details {
+        border: 1px solid var(--panel-border);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+
+      .faq details[open] {
+        border-color: rgba(125, 211, 252, 0.35);
+      }
+
+      .faq summary {
+        position: relative;
+        padding: 18px 52px 18px 22px;
+        font-weight: 600;
+        line-height: 1.4;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .faq summary::after {
+        content: "+";
+        position: absolute;
+        top: 50%;
+        right: 22px;
+        transform: translateY(-50%);
+        color: var(--accent-soft);
+        font-size: 1.4rem;
+        line-height: 1;
+      }
+
+      .faq details[open] summary::after {
+        content: "−";
+      }
+
+      .faq summary:hover {
+        color: var(--accent-soft);
+      }
+
+      .faq details p {
+        margin: 0;
+        padding: 0 22px 20px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      @media (min-width: 720px) {
+        .faq-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          align-items: start;
+        }
+      }
+
+      .contact-list {
+        margin: 0 0 24px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .contact-list > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      }
+
+      .contact-list > div:last-child {
+        border-bottom: 0;
+      }
+
+      .contact-list dt {
+        min-width: 96px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .contact-list dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .contact-list a {
+        color: var(--text);
+      }
+
+      .site-footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 28px 0 40px;
+        border-top: 1px solid var(--panel-border);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .site-footer img {
+        width: 130px;
+        height: auto;
+        padding: 6px 8px;
+        border-radius: 6px;
+        background: rgba(248, 250, 252, 0.96);
+      }
+
+      .site-footer p {
+        margin: 0;
+      }
+
+      .site-footer a {
+        color: var(--muted);
+      }
+
+      .site-footer a:hover {
+        color: var(--text);
+      }
+
+      @media (max-width: 560px) {
+        body {
+          padding: 0 16px;
+        }
+
+        .site-header {
+          padding: 16px 0;
+        }
+
+        .brand img {
+          width: 140px;
+        }
+
+        .hero {
+          padding: 32px 0 40px;
+        }
+
+        .card {
+          padding: 22px;
+        }
+
+        .button {
+          width: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        * {
+          transition: none !important;
+        }
       }
     </style>
   </head>
   <body>
-    <main aria-label="SwamTech placeholder page">
-      <img src="swamtech.svg" alt="SwamTech">
-      <h1>Under construction</h1>
-      <p>Our website is being built right now. Please check back soon.</p>
-      <div class="status">Coming soon</div>
+    <a class="skip-link" href="#innehall">Hoppa till innehåll</a>
+
+    <header class="site-header">
+      <a class="brand" href="#innehall" aria-label="SwamTech – till toppen av sidan">
+        <img src="swamtech.svg" alt="SwamTech">
+      </a>
+      <nav class="site-nav" aria-label="Huvudmeny">
+        <a href="#kontakt">Kontakt</a>
+      </nav>
+    </header>
+
+    <main id="innehall">
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">Webbhotell för företag</p>
+        <h1 id="hero-title">Hemsida, e-post och domän <span>på ett ställe</span></h1>
+        <p>
+          SwamTech hjälper företag att komma ut på nätet utan krångel. Vi ordnar
+          webbhotell, e-post på din egen domän och en enkel hemsida som gör jobbet.
+        </p>
+        <div class="cta-row">
+          <a class="button" href="#pris">Se pris</a>
+          <a class="button button--secondary" href="#kontakt">Kontakta oss</a>
+        </div>
+      </section>
+
+      <section class="cards" aria-label="Tjänster, pris och kontakt">
+        <article class="card" aria-labelledby="info-title">
+          <h2 id="info-title">Webbhotell &amp; e-post</h2>
+          <p>
+            En stabil grund för företagets närvaro online. Allt samlat hos en
+            leverantör, med support via e-post.
+          </p>
+          <h3>Webbhotell</h3>
+          <ul>
+            <li>Plats för företagets hemsida</li>
+            <li>Egen domän ingår</li>
+            <li>Drift och support via e-post</li>
+          </ul>
+          <h3>E-post</h3>
+          <ul>
+            <li>E-postadresser på din egen domän</li>
+            <li>Till exempel fornamn@dittforetag.se</li>
+            <li>Hanteras tillsammans med webbhotellet</li>
+          </ul>
+        </article>
+
+        <article class="card card--price" id="pris" aria-labelledby="price-title">
+          <p class="badge">Fast pris</p>
+          <h2 id="price-title">Pris</h2>
+          <p class="price">2 500 kr <span>/år</span></p>
+          <p class="price-note">Årsavgift för företag, exkl. moms.</p>
+          <p>
+            Enkel hemsida med e-post och egen domän för bara 2 500 kr/år exkl. moms.
+          </p>
+          <h3>Det här ingår</h3>
+          <ul>
+            <li>Enkel hemsida</li>
+            <li>E-post på egen domän</li>
+            <li>Egen domän ingår</li>
+            <li>1 timme support per år</li>
+          </ul>
+          <!-- TODO: replace dummy contact details -->
+          <a
+            class="button"
+            href="mailto:info@swamtech.se?subject=Offertf%C3%B6rfr%C3%A5gan%20webbhotell"
+          >Begär offert</a>
+        </article>
+
+        <article class="card" id="kontakt" aria-labelledby="contact-title">
+          <h2 id="contact-title">Kontakt</h2>
+          <p>Berätta vad företaget behöver så återkommer vi med ett förslag.</p>
+          <!-- TODO: replace dummy contact details -->
+          <dl class="contact-list">
+            <div>
+              <dt>Företag</dt>
+              <dd>SwamTech AB</dd>
+            </div>
+            <div>
+              <dt>Org.nr</dt>
+              <dd>559000-0000</dd>
+            </div>
+            <div>
+              <dt>E-post</dt>
+              <dd><a href="mailto:info@swamtech.se">info@swamtech.se</a></dd>
+            </div>
+            <div>
+              <dt>Telefon</dt>
+              <dd><a href="tel:+46700000000">+46 70 000 00 00</a></dd>
+            </div>
+            <div>
+              <dt>Adress</dt>
+              <dd>Exempelgatan 1, 111 22 Stockholm</dd>
+            </div>
+          </dl>
+          <a class="button button--secondary" href="mailto:info@swamtech.se">Skicka e-post</a>
+        </article>
+      </section>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Vanliga frågor</h2>
+        <div class="faq-list">
+          <details>
+            <summary>Ingår domänen i priset?</summary>
+            <p>
+              Ja. En egen domän ingår i årsavgiften tillsammans med webbhotell
+              och e-post.
+            </p>
+          </details>
+          <details>
+            <summary>Vad ingår i supporttimmen?</summary>
+            <p>
+              En timme per år för till exempel mindre ändringar eller hjälp att
+              logga in på e-posten på en ny enhet. Supporten sker vardagar via
+              e-post eller telefon. Arbete utöver timmen offereras separat.
+            </p>
+          </details>
+          <details>
+            <summary>Vad menas med en enkel hemsida?</summary>
+            <p>
+              En mindre informationssajt för företaget. Större eller mer
+              komplexa sajter offereras efter behov.
+            </p>
+          </details>
+          <details>
+            <summary>Vad kostar det?</summary>
+            <p>
+              2 500 kr/år exkl. moms för företag. Avgiften faktureras årligen.
+            </p>
+          </details>
+        </div>
+      </section>
     </main>
+
+    <footer class="site-footer">
+      <img src="swamtech.svg" alt="SwamTech">
+      <p>© 2026 SwamTech AB · Org.nr 559000-0000</p>
+    </footer>
   </body>
 </html>
